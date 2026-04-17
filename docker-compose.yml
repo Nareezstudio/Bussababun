@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: buss4b4bun
+      POSTGRES_DB: db_bussababun
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: db
+      DB_USER: postgres
+      DB_PASSWORD: buss4b4bun
+      DB_NAME: db_bussababun
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    depends_on:
+      - backend
+    # สำหรับ React พัฒนา ใช้คำสั่งรันโดยตรง
+    command: npm start 
+
+volumes:
+  postgres_data:
