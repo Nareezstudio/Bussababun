@@ -1,38 +1,40 @@
 services:
+  # --- ส่วนของ Database ---
   db:
-    image: postgres:latest
+    image: postgres:15-alpine
+    container_name: bussababun_db
     restart: always
     environment:
-      POSTGRES_USER: postgres
+      POSTGRES_USER: postgres      # ใช้ชื่อเดิมจาก .env คุณได้เลย
       POSTGRES_PASSWORD: buss4b4bun
-      POSTGRES_DB: db_bussababun
-      PGDATA: /var/lib/postgresql/data/pgdata
-    volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      POSTGRES_DB: bussababun_db
     ports:
       - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data # สำคัญ: ข้อมูลจะได้ไม่หายเวลาปิด Docker
 
+  # --- ส่วนของ Backend ---
   backend:
     build: ./backend
+    container_name: bussababun_api
+    restart: always
     ports:
-      - "5000:5000"
+      - "5000:5000" # ตรงตาม .env ของคุณ
     environment:
-      DB_HOST: db
-      DB_USER: postgres
-      DB_PASSWORD: buss4b4bun
-      DB_NAME: db_bussababun
+      # ใช้ชื่อ service 'db' แทน localhost เพราะอยู่ใน docker network เดียวกัน
+      DATABASE_URL: "postgresql://postgres:buss4b4bun@db:5432/bussababun_db?schema=public"
     depends_on:
       - db
 
-  frontend:
-    build: ./frontend
+  # --- ส่วนของ Frontend (Web) ---
+  web:
+    build: ./web
+    container_name: bussababun_web
+    restart: always
     ports:
       - "3000:3000"
-    stdin_open: true
     depends_on:
       - backend
-    # สำหรับ React พัฒนา ใช้คำสั่งรันโดยตรง
-    command: npm start 
 
 volumes:
-  postgres_data:
+  db_data:
