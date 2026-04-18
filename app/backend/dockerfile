@@ -2,7 +2,7 @@ FROM node:20-bookworm-slim
 
 WORKDIR /app
 
-# ติดตั้ง OpenSSL ที่ Prisma ต้องการอย่างเจาะจง
+# ติดตั้ง OpenSSL ที่ Prisma ต้องการ
 RUN apt-get update && apt-get install -y openssl libssl-dev && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
@@ -10,7 +10,7 @@ RUN npm install
 
 COPY . .
 
-# บรรทัดนี้จะผ่านแน่นอนเพราะมี OpenSSL ในเครื่องแล้ว
+# เพิ่มบรรทัดนี้เพื่อบังคับให้ Prisma สร้างไฟล์ใหม่สำหรับระบบ Debian
 RUN npx prisma generate
 
 EXPOSE 5000
