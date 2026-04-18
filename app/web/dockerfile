@@ -1,7 +1,11 @@
-FROM node:18
+FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+RUN npm run build
+# ติดตั้ง serve เพื่อทำหน้าที่แทน Vercel
+RUN npm install -g serve 
 EXPOSE 3000
-CMD ["npm", "start"]
+# -s คือสั่งให้ทำ Single Page App Routing (เหมือนใน vercel.json)
+CMD ["serve", "-s", "dist", "-l", "3000"]

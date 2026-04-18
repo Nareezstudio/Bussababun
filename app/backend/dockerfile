@@ -1,6 +1,11 @@
-FROM node:18
+FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
+# ติดตั้ง dependencies
 RUN npm install
+# Copy โค้ดทั้งหมดรวมถึงโฟลเดอร์ prisma
 COPY . .
+# Generate Prisma Client
+RUN npx prisma generate
+EXPOSE 5000
 CMD ["npm", "start"]
