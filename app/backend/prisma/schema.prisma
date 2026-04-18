@@ -1,0 +1,376 @@
+generator client {
+  provider   = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  engineType = "library"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // ✅ เพิ่มบรรทัดนี้
+}
+
+// --- Enum สำหรับสถานะต่างๆ ---
+enum NovelStatus {
+  ONGOING
+  COMPLETED
+  ONHOLD
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+// 1. เพิ่ม Enum สำหรับธนาคาร (ทางเลือก: เพื่อให้ข้อมูลนิ่งขึ้น)
+enum BankName {
+  KBANK
+  SCB
+  BBL
+  KTB
+  BAY
+  TTB
+  OTHER
+}
+
+enum ContestStatus {
+  UPCOMING
+  ACTIVE
+  CLOSED
+  JUDGING
+  FINISHED
+}
+
+enum EntryStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// --- ส่วนที่ Admin จัดการ ---
+model SystemSetting {
+  id          Int      @id @default(1)
+  siteName    String   @default("Bussababun.com")
+  writerShare Float    @default(60.0)
+  systemShare Float    @default(40.0)
+  updatedAt   DateTime @updatedAt
+}
+
+// --- Model: ผู้ใช้งาน ---
+model User {
+  id             String   @id @default(uuid())
+  username       String   @unique
+  penName        String?  
+  email          String   @unique
+  password       String
+  profileImage   String?
+  role           String   @default("READER") // หรือ enum Role { READER, WRITER, ADMIN }
+  coins          Int      @default(0)
+  
+  // --- ส่วนของนักเขียน ---
+  realName       String?  
+  realSurname    String?   // ✅ แยกนามสกุลเพื่อให้จัดการง่ายขึ้น
+  idCardNumber   String?  
+  bankName       String?   // หรือใช้ BankName (Enum)
+  bankAccount    String?  
+  bankAccountName String?  // ✅ เพิ่ม: ชื่อเจ้าของบัญชี (สำคัญตอนโอนเงิน)
+  
+  // รายได้
+  income              Float     @default(0.0) // ยอดที่ถอนได้ปัจจุบัน
+  totalEarnings       Float     @default(0.0) // รายได้สะสมทั้งหมด (เอาไว้ทำ Dashboard)
+  earnings            Float     @default(0)
+  withdrawalOTP       String?
+  withdrawalOTPExpiry DateTime?
+
+  // การยืนยันตัวตน
+  idCardImage    String?
+  bankBookImage  String? 
+  // ✅ แก้จาก String เป็น Enum VerificationStatus
+  verification   VerificationStatus @default(UNVERIFIED) 
+  rejectedReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  novels             Novel[]
+  purchases          Purchase[]
+  comments           Comment[]
+  topUpHistories     TopUpHistory[]
+  withdrawals        Withdrawal[]
+  writerTransactions Transaction[]    @relation("WriterRevenue")
+  notifications      Notification[]
+  readingHistory     ReadingHistory[]
+  follows            Follow[]
+  contestEntries     ContestEntry[]
+
+  resetPasswordToken   String?   @unique
+  resetPasswordExpires DateTime?
+}
+
+// --- Model: นิยาย ---
+model Novel {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  coverImage    String?
+  status        String   @default("ONGOING")
+  viewCount     Int      @default(0)
+  isRecommended Boolean  @default(false)
+  authorId      String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  author         User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  chapters       Chapter[]
+  category       Category         @relation(fields: [categoryId], references: [id])
+  categoryId     Int
+  promotions     Promotion[]
+  comments       Comment[]
+  followers      Follow[]
+  readingHistory ReadingHistory[] // 👈 เพิ่ม Opposite Relation
+  contestEntries ContestEntry[]
+}
+
+// --- Model: ตอนนิยาย ---
+model Chapter {
+  id            String   @id @default(uuid())
+  title         String
+  content       String
+  chapterNumber Int
+  price         Int      @default(0)
+  isPublished   Boolean  @default(false)
+  novelId       String
+  createdAt     DateTime @default(now())
+
+  novel          Novel            @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  purchases      Purchase[]
+  transactions   Transaction[]
+  comments       Comment[]
+  readingHistory ReadingHistory[]
+
+  promotion   Promotion? @relation(fields: [promotionId], references: [id])
+  promotionId String?
+}
+
+// --- Model: ประวัติการอ่าน (จุดที่เคย Error) ---
+model ReadingHistory {
+  id        Int      @id @default(autoincrement())
+  userId    String 
+  novelId   String 
+  chapterId String 
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  novel     Novel    @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  // ✅ แนะนำให้ใช้แค่คู่เดียวที่สำคัญที่สุดเพื่อป้องกันความสับสน
+  // ปกติคือ 1 คน ต่อ 1 ตอน จะมีประวัติแค่ 1 อัน
+  @@unique([userId, chapterId])
+}
+
+// --- Model: การซื้อตอนนิยาย ---
+model Purchase {
+  id              String   @id @default(uuid())
+  amount          Int
+  fullPrice       Int
+  discountAmount  Int      @default(0)
+  writerShare     Float
+  systemShare     Float
+  sharePercentage Float
+  createdAt       DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  chapterId String
+  chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  couponId String?
+  coupon   Coupon? @relation(fields: [couponId], references: [id])
+
+  @@unique([userId, chapterId])
+  @@index([userId])
+}
+
+// --- Model: รายงานธุรกรรม ---
+model Transaction {
+  id        String @id @default(uuid())
+  chapterId String
+  buyerId   String
+  writerId  String
+
+  totalAmount   Int
+  systemFee     Float
+  writerRevenue Float
+
+  createdAt DateTime @default(now())
+
+  chapter Chapter @relation(fields: [chapterId], references: [id])
+  writer  User    @relation("WriterRevenue", fields: [writerId], references: [id])
+}
+
+model Category {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  novels Novel[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  novelId String
+  novel   Novel  @relation(fields: [novelId], references: [id])
+
+  chapterId String?
+  chapter   Chapter? @relation(fields: [chapterId], references: [id])
+}
+
+model TopUpHistory {
+  id            String   @id @default(uuid())
+  amount        Float
+  coinsReceived Int
+  method        String
+  status        String   @default("PENDING")
+  transactionId String?  @unique
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  createdAt     DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  type      String   @default("SYSTEM")
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Promotion {
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  type          String
+  discountType  String
+  discountValue Float
+  promoCode     String?  @unique
+  scope         String   @default("ON_NOVEL")
+  startDate     DateTime
+  endDate       DateTime
+  isActive      Boolean  @default(true)
+
+  novelId  String
+  novel    Novel     @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  chapters Chapter[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([novelId])
+  @@index([promoCode])
+}
+
+model Coupon {
+  id            String   @id @default(uuid())
+  code          String   @unique
+  discountType  String
+  discountValue Float
+  minPurchase   Int      @default(0)
+  limitPerUser  Int      @default(1)
+  usageLimit    Int?
+  usedCount     Int      @default(0)
+  startDate     DateTime
+  endDate       DateTime
+  isActive      Boolean  @default(true)
+
+  purchases Purchase[]
+  createdAt DateTime   @default(now())
+}
+
+model Follow {
+  id        String   @id @default(cuid())
+  userId    String
+  novelId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  novel Novel @relation(fields: [novelId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, novelId])
+}
+
+model Withdrawal {
+  id              String   @id @default(uuid())
+  userId          String
+  amount          Float
+  bankAccount     String
+  bankName        String
+  bankAccountName String
+  status          String   @default("PENDING")
+  slipImage       String?
+  adminNote       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  target    String   @default("ALL") // "ALL", "READER", "WRITER"
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --- Model: การประกวด (Contest Zone) ---
+model Contest {
+  id            String          @id @default(uuid())
+  title         String
+  description   String          @db.Text
+  rules         String?         @db.Text   // กติกาการประกวด
+  prizePool     String?                    // ข้อมูลของรางวัล
+  bannerImage   String?                    // รูป Banner งานประกวด
+  startDate     DateTime
+  endDate       DateTime
+  status        ContestStatus   @default(UPCOMING)
+  
+  entries       ContestEntry[]             // ความสัมพันธ์กับผลงานที่ส่งเข้าประกวด
+  
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+// --- Model: ผลงานที่ส่งเข้าประกวด ---
+model ContestEntry {
+  id          String   @id @default(uuid())
+  contestId   String
+  novelId     String
+  authorId    String
+  
+  // เก็บสถิติแยกต่างหากสำหรับช่วงเวลาประกวด (ทางเลือก)
+  score       Float    @default(0.0)
+  voteCount   Int      @default(0)
+  
+  status      EntryStatus @default(PENDING) // สำหรับให้ Admin ตรวจสอบผลงานก่อนขึ้นหน้า Contest
+  
+  contest     Contest  @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  novel       Novel    @relation(fields: [novelId], references: [id], onDelete: Cascade)
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([contestId, novelId]) // ป้องกันการส่งนิยายเรื่องเดิมซ้ำในกิจกรรมเดียว
+}

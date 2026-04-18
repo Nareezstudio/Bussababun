@@ -1,0 +1,12 @@
+// prisma.config.cjs
+require('dotenv').config();
+
+// prisma.config.cjs
+module.exports = {
+  datasource: {
+    url: process.env.DATABASE_URL, // Prisma 7 จะมาอ่านค่าจากที่นี่แทน
+  },
+  migrations: {
+    seed: 'node ./prisma/seed.js', // ระบุคำสั่งรันไฟล์ seed ที่นี่
+  },
+};

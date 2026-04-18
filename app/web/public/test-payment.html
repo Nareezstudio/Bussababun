@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Payment</title>
+</head>
+<body>
+    <div style="text-align: center; margin-top: 50px; font-family: sans-serif;">
+        <h2>คลิกปุ่มด้านล่างเพื่อทดสอบ</h2>
+            <form method="POST" action="https://payments.paysolutions.asia/payment">
+                <input type="hidden" name="merchantid" value="53453347">
+                <input type="hidden" name="refno" value="TEST_V6_002">
+                <input type="hidden" name="customeremail" value="test@bussababun.com">
+                <input type="hidden" name="productdetail" value="TopupCoins">
+                <input type="hidden" name="total" value="50.00">
+                
+                <input type="hidden" name="cc" value="00"> 
+                
+                <input type="hidden" name="lang" value="T">
+                <button type="submit" style="padding: 15px; background: green; color: white;">
+                    ทดสอบด้วยค่า CC=00 และ URL ใหม่
+                </button>
+            </form>
+    </div>
+</body>
+</html>

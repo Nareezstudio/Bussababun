@@ -1,0 +1,1 @@
+INSERT INTO "Promotion" (id, code, discount) VALUES ('1', 'WELCOME10', 10);
