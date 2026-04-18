@@ -1,23 +1,17 @@
-# ใช้ Debian-based image แทน Alpine เพราะมี library ครบกว่าสำหรับ Prisma
 FROM node:20-bookworm-slim
 
 WORKDIR /app
 
-# ติดตั้ง openssl และ library ที่จำเป็น (หัวใจสำคัญที่ทำให้ build ผ่าน)
-RUN apt-get update && apt-get install -y \
-    openssl \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
+# ติดตั้ง OpenSSL ที่ Prisma ต้องการอย่างเจาะจง
+RUN apt-get update && apt-get install -y openssl libssl-dev && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-
 RUN npm install
 
 COPY . .
 
-# ตอนนี้ npx prisma generate จะรันผ่านแล้วเพราะมี library ครบ
+# บรรทัดนี้จะผ่านแน่นอนเพราะมี OpenSSL ในเครื่องแล้ว
 RUN npx prisma generate
 
 EXPOSE 5000
-
 CMD ["npm", "start"]
