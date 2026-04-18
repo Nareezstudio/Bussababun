@@ -15,7 +15,7 @@ services:
 
   # --- ส่วนของ Backend ---
   backend:
-    build: ./backend
+    build: ./app/backend
     container_name: bussababun_api
     restart: always
     ports:
@@ -28,7 +28,7 @@ services:
 
   # --- ส่วนของ Frontend (Web) ---
   web:
-    build: ./web
+    build: ./app/web
     container_name: bussababun_web
     restart: always
     ports:
