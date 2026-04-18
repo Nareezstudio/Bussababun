@@ -22,7 +22,7 @@ services:
       - "5000:5000" # ตรงตาม .env ของคุณ
     environment:
       # ใช้ชื่อ service 'db' แทน localhost เพราะอยู่ใน docker network เดียวกัน
-      DATABASE_URL: "postgresql://postgres:buss4b4bun@db:5432/bussababun_db?schema=public"
+      DATABASE_URL: "postgresql://postgres:buss4b4bun@bussababun_db:5432/bussababun_db?schema=public"
     depends_on:
       - db
 
