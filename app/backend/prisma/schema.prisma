@@ -1,5 +1,6 @@
 generator client {
   provider   = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-1.1.x"] # เพิ่มอันนี้เข้าไปครับ
   previewFeatures = ["driverAdapters"]
   engineType = "library"
 }
@@ -7,7 +8,6 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL") // ✅ เพิ่มบรรทัดนี้
 }
 
 // --- Enum สำหรับสถานะต่างๆ ---

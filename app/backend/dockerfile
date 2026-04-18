@@ -1,6 +1,7 @@
 FROM node:20-alpine
 WORKDIR /app
 COPY package*.json ./
+RUN apk add --no-local openssl1.1-compat
 # ติดตั้ง dependencies
 RUN npm install
 # Copy โค้ดทั้งหมดรวมถึงโฟลเดอร์ prisma
