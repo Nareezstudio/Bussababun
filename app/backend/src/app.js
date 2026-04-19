@@ -4,10 +4,12 @@ const app = express();
 
 // 1. กำหนดลิสต์ URL ที่แน่นอน (Production & Local)
 const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5173',
+  'http://bussababun.com',
   'https://bussababun.com',
-  'https://www.bussababun.com'
+  'http://www.bussababun.com',
+  'https://www.bussababun.com',
+  'http://147.50.255.171',
+  'https://147.50.255.171'
 ];
 
 // 2. ตั้งค่า CORS Options
