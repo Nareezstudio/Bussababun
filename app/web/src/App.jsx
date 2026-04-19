@@ -2,13 +2,12 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
-
-// ✅ นำเข้า Toaster
 import { Toaster } from 'react-hot-toast';
 
 // --- Import Components ---
 import Navbar from "./components/Navbar";
 import ContestList from './components/contest/ContestList';
+import ContestDetail from './components/contest/ContestDetail'; // ✅ เพิ่มแล้ว
 
 // --- Import Public Pages ---
 import Home from "./pages/Home";
@@ -17,9 +16,9 @@ import ReadChapter from './pages/ReadChapter';
 import Login from './pages/Login';         
 import Register from './pages/Register'; 
 import ForgotPassword from './pages/ForgotPassword';
-import CategoryPage from './pages/CategoryPage'; // อย่าลืมสร้างไฟล์นี้ตามที่ผมเขียนให้ก่อนหน้านี้
+import CategoryPage from './pages/CategoryPage'; 
 import AnnouncementDetail from './pages/AnnouncementDetail';
-import SearchPage from './pages/SearchPage'; // มั่นใจว่า import มาแล้ว
+import SearchPage from './pages/SearchPage'; 
 
 // --- Import User Pages ---
 import UserProfile from "./pages/user/UserProfile";
@@ -52,7 +51,7 @@ import VerifyWriters from './pages/admin/VerifyWriters';
 import AdminSettings from './pages/admin/AdminSettings'; 
 import AdminWithdrawal from './pages/admin/AdminWithdrawal';
 import CategoryManager from './pages/admin/CategoryManager';
-import AdminNovelManager from './pages/admin/AdminNovelManager'; // ตรวจสอบ Path ให้ถูกต้องตามโครงสร้างโปรเจกต์คุณ
+import AdminNovelManager from './pages/admin/AdminNovelManager'; 
 import AdminAnnouncementManager from './pages/admin/AdminAnnouncementManager';
 
 // --- Import Static Pages ---
@@ -71,7 +70,6 @@ const AdminRoute = ({ children, user }) => {
 function App() {
   const { user, loading } = useAuth(); 
 
-  // ป้องกันการเด้งไปหน้าแรกตอนที่กำลังโหลดข้อมูล User
   if (loading) {
     return (
       <div className="min-h-screen flex justify-center items-center">
@@ -82,7 +80,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
-      {/* ✅ Toaster สำหรับแจ้งเตือน */}
       <Toaster 
         position="top-center"
         reverseOrder={false}
@@ -103,7 +100,7 @@ function App() {
         <Routes>
           {/* 🌏 Public Routes */}
           <Route path="/" element={<Home />} />
-          <Route path="/search" element={<SearchPage />} /> {/* <-- ต้องมีบรรทัดนี้! */}
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/novel/:id" element={<NovelDetail />} />
@@ -148,7 +145,9 @@ function App() {
               <WriterWithdrawal />
             </ProtectedRoute>
           } />
+          {/* ✅ Contest Routes */}
           <Route path="/contest" element={<ContestList />} />
+          <Route path="/contest/:id" element={<ContestDetail />} />
           <Route path="/writer/verify-step-1" element={<ReVerifyWriter />} />
 
           {/* 👑 Admin Routes */}
@@ -167,32 +166,24 @@ function App() {
           <Route path="/admin/novels" element={<AdminNovelManager />} />
           <Route path="/admin/announcements" element={<AdminAnnouncementManager />} />
 
-          {/* Fallback - ต้องอยู่ล่างสุดเสมอ */}
+          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
 
-      {/* ✅ Footer: Bongkochakorn */}
       <footer className="bg-white border-t border-slate-100 pt-12 pb-8">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-col items-center justify-center space-y-4">
-            
-            <div className="text-2xl font-black text-slate-800 italic tracking-tighter">
-              BUS<span className="text-orange-500">SABABUN</span> Official
-            </div>
-
-            <div className="flex gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              <Link to="/terms" className="hover:text-orange-500 transition-colors">Terms</Link>
-              <Link to="/privacy" className="hover:text-orange-500 transition-colors">Privacy</Link>
-              <Link to="/contact" className="hover:text-orange-500 transition-colors">Contact</Link>
-            </div>
-
-            <div className="w-12 h-[2px] bg-orange-500 rounded-full opacity-20"></div>
-
-            <p className="text-center text-slate-300 text-[9px] font-bold uppercase tracking-[0.3em]">
-              Bussababun © 2026 Professional Creative Writing Platform
-            </p>
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="text-2xl font-black text-slate-800 italic tracking-tighter mb-4">
+            BUS<span className="text-orange-500">SABABUN</span> Official
           </div>
+          <div className="flex justify-center gap-6 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">
+            <Link to="/terms" className="hover:text-orange-500 transition-colors">Terms</Link>
+            <Link to="/privacy" className="hover:text-orange-500 transition-colors">Privacy</Link>
+            <Link to="/contact" className="hover:text-orange-500 transition-colors">Contact</Link>
+          </div>
+          <p className="text-slate-300 text-[9px] font-bold uppercase tracking-[0.3em]">
+            Bussababun © 2026 Professional Creative Writing Platform
+          </p>
         </div>
       </footer>
     </div>
