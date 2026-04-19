@@ -8,6 +8,7 @@ import { Toaster } from 'react-hot-toast';
 
 // --- Import Components ---
 import Navbar from "./components/Navbar";
+import ContestList from './components/contest/ContestList';
 
 // --- Import Public Pages ---
 import Home from "./pages/Home";
@@ -147,6 +148,7 @@ function App() {
               <WriterWithdrawal />
             </ProtectedRoute>
           } />
+          <Route path="/contest" element={<ContestList />} />
           <Route path="/writer/verify-step-1" element={<ReVerifyWriter />} />
 
           {/* 👑 Admin Routes */}
