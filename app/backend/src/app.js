@@ -9,7 +9,9 @@ const allowedOrigins = [
   'http://www.bussababun.com',
   'https://www.bussababun.com',
   'http://147.50.255.171',
-  'https://147.50.255.171'
+  'https://147.50.255.171',
+  'https://www.paysolutions.asia', // โดเมนของ PaySolution
+  'https://paysolutions.asia'
 ];
 
 // 2. ตั้งค่า CORS Options
