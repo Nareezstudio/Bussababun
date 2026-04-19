@@ -90,6 +90,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/promotions', promotionRoutes);
 app.use('/api/purchases', purchaseRoutes);
 app.use('/api/income', incomeRoutes);
+app.use('/api/contests', require('./routes/contestRoutes'));
 
 // --- 4. Test Route ---
 app.get('/test', (req, res) => {
