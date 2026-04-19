@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const api = axios.create({
   //baseURL: 'http://localhost:5000/api', 
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api', // ใช้ตัวแปรนี้แทน localhost:5000
+  baseURL: import.meta.env.VITE_API_URL || 'http://bussababun.com/api', // ใช้ตัวแปรนี้แทน localhost:5000
   withCredentials: true
 });
 
