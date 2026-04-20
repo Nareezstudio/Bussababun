@@ -11,10 +11,36 @@ const ContestList = () => {
   useEffect(() => {
     const fetchContests = async () => {
       try {
+        // ลองดึงจาก API จริงก่อน
         const res = await api.get('/contests');
-        setContests(res.data.data);
+        if (res.data.data && res.data.data.length > 0) {
+          setContests(res.data.data);
+        } else {
+          // 💡 ถ้าไม่มีข้อมูลใน DB ให้ใช้ข้อมูลจำลองนี้แทนเพื่อให้หน้าเว็บไม่ว่างเปล่า
+          setContests([
+            {
+              id: 1,
+              title: "ประกวดนิยายรักโรแมนติก 2026",
+              description: "ร่วมถ่ายทอดเรื่องราวความรักสุดประทับใจ ไม่จำกัดรูปแบบ ไม่ว่าจะเป็นรักหวานซึ้งหรือรักเศร้าเคล้าน้ำตา",
+              prizePool: 20000,
+              endDate: "2026-04-30",
+              banner: "" // ใส่ URL รูปภาพของคุณที่นี่
+            }
+          ]);
+        }
       } catch (err) {
         console.error("Error:", err);
+        // 💡 กรณี Error (เช่น ยังไม่ได้ทำ API) ก็ให้โชว์ข้อมูลจำลองเพื่อให้หน้าเว็บทำงานได้
+        setContests([
+          {
+            id: 1,
+            title: "ประกวดนิยายรักโรแมนติก 2026",
+            description: "สนามประลองสำหรับนักเขียนที่ต้องการถ่ายทอดเรื่องราวความรักที่ลึกซึ้งและกินใจ ชิงรางวัลรวมกว่า 20,000 บาท",
+            prizePool: 20000,
+            endDate: "2026-04-30",
+            banner: "" 
+          }
+        ]);
       } finally {
         setLoading(false);
       }
